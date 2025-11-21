@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: zom_half
+  m_Controller: {fileID: 9100000, guid: b6c402371562146d3ab8e68cb8b25639, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: ec6ca9f9c5e2a4a7aab9f7267141bbaf, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: ec6ca9f9c5e2a4a7aab9f7267141bbaf, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: c58039ef3f86b448f8f1c7e68db1ef6a, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: c58039ef3f86b448f8f1c7e68db1ef6a, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 01e794948ed8a4fd693e167d9ed66f79, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 01e794948ed8a4fd693e167d9ed66f79, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 6056760c9ccf24ec5a7446ea1ecd6b55, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 6056760c9ccf24ec5a7446ea1ecd6b55, type: 2}
