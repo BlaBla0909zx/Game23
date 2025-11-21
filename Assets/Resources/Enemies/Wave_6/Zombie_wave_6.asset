@@ -1,26 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad210fc9ea99f41c6b54cadaa83a0e7f, type: 3}
-  m_Name: Zombie_wave_6
-  m_EditorClassIdentifier: 
-  enemyPrefab: {fileID: 6277799879001790009, guid: 8b14fb24d223b403aba3e45f0e674539,
-    type: 3}
-  enemyID: 0
-  enemyName: Dummy
-  maxHealth: 520
-  moveSpeed: 1
-  meleeDamage: 30
-  attackRange: 1
-  attackSpeed: 1
-  animationSpeed: 1
-  coinDrop: 5
-  healthBarHeightOffset: 1.5
+version https://git-lfs.github.com/spec/v1
+oid sha256:4f0efd12955095db113ecfe1a4edfdda03d7a71c70d7cd55b394becd3c4df67a
+size 679

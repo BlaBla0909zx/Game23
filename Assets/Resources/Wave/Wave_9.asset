@@ -1,23 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3487f1e122301493aa0380740c0225e4, type: 3}
-  m_Name: Wave_9
-  m_EditorClassIdentifier: 
-  enemies:
-  - enemyData: {fileID: 11400000, guid: 8c18aae601775f54aae5aad832cc0d11, type: 2}
-    enemyCount: 25
-    spawnRate: 2
-    startDelay: 1
-  - enemyData: {fileID: 11400000, guid: 90407300320c4c44bbbeb725aaf61f25, type: 2}
-    enemyCount: 30
-    spawnRate: 2
-    startDelay: 6
+version https://git-lfs.github.com/spec/v1
+oid sha256:f87dc93287699c681de9435a4e9732b1bd0e7ac54f54b24d9b2ce86a25cd3598
+size 680
