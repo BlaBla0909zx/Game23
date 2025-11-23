@@ -14,8 +14,7 @@ public class GameOverManager : MonoBehaviour
     [SerializeField]
     private LoseScreenUI loseScreenUI;
 
-    [SerializeField]
-    private WaveManager waveManager;
+
 
     [Header("Game Over Settings")]
     [SerializeField]
@@ -32,15 +31,7 @@ public class GameOverManager : MonoBehaviour
 
     private void Awake()
     {
-        // Find references if not assigned
-        if (playerStats == null)
-            playerStats = PlayerStats.Instance;
 
-        if (loseScreenUI == null)
-            loseScreenUI = FindObjectOfType<LoseScreenUI>();
-
-        if (waveManager == null)
-            waveManager = FindObjectOfType<WaveManager>();
     }
 
     private void Start()
@@ -104,18 +95,6 @@ public class GameOverManager : MonoBehaviour
             PauseGame();
         }
 
-        // Get game statistics
-        float survivalTime = GetSurvivalTime();
-
-        // Show lose screen
-        if (loseScreenUI != null)
-        {
-            loseScreenUI.ShowLoseScreen(0, survivalTime); // No score system, pass 0
-        }
-        else
-        {
-            Debug.LogWarning("GameOverManager: LoseScreenUI not found!");
-        }
     }
 
     /// <summary>
@@ -124,8 +103,7 @@ public class GameOverManager : MonoBehaviour
     public void PauseGame()
     {
         Time.timeScale = 0f;
-        if (debugMode)
-            Debug.Log("GameOverManager: Game paused (time scale = 0)");
+        Debug.Log("GameOverManager: Game paused (time scale = 0)");
     }
 
     /// <summary>
@@ -153,9 +131,9 @@ public class GameOverManager : MonoBehaviour
         isGameOver = false;
 
         // Restart using wave manager
-        if (waveManager != null)
+        if (WaveManager.Instance != null)
         {
-            waveManager.RestartWaves();
+            WaveManager.Instance.RestartWaves();
         }
         else
         {
@@ -174,25 +152,7 @@ public class GameOverManager : MonoBehaviour
     /// <summary>
     /// Get survival time from game systems
     /// </summary>
-    /// <returns>Survival time in seconds</returns>
-    private float GetSurvivalTime()
-    {
-        // Try to get time from wave manager
-        if (waveManager != null)
-        {
-            var waveManagerType = waveManager.GetType();
-            var timeProperty = waveManagerType.GetProperty("GameTime");
-            if (timeProperty != null)
-            {
-                return (float)timeProperty.GetValue(waveManager);
-            }
-        }
 
-       
-
-        // Fallback: use Time.time
-        return Time.time;
-    }
 
     /// <summary>
     /// Reload the current scene as fallback

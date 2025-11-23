@@ -51,5 +51,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Survival.sln"
+    "dotnet.defaultSolution": "Game23.sln"
 }

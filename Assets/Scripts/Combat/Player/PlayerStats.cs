@@ -122,7 +122,6 @@ public class PlayerStats : MonoBehaviour, IHealthBar, IDamageable
         Skill_Base skill = SkillInstances[index];
         if (skill.IsOnCooldown)
         {
-            Debug.Log($"{skill.SkillData.skillName} is on cooldown.");
             return;
         }
 

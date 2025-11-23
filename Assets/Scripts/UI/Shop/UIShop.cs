@@ -1,9 +1,9 @@
-using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class UIShop : MonoBehaviour
 {
@@ -46,7 +46,7 @@ public class UIShop : MonoBehaviour
         PlayerStats.Instance.OnStatChanged += HandleStatChanged;
         countinueButton.onClick.AddListener(() =>
         {
-            GameplayManager.Instance.ResumeGame();  // �� StartGame() �ł͂Ȃ� ResumeGame()
+            GameplayManager.Instance.ResumeGame();  // �� StartGame() �ł͂Ȃ� ResumeGame()
         });
         RerollButton.onClick.AddListener(Reroll);
         // InitializeSkills();
@@ -114,6 +114,32 @@ public class UIShop : MonoBehaviour
         }
     }
 
+    private void RerollOnActive()
+    {
+        PlayerStats.Instance.Coin.Value -= 2;
+        currentSlots.Clear();
+        foreach (Transform child in upgradeSlotParent)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // pick random 3 option
+        for (int i = 0; i < 3; i++)
+        {
+            var statType = PickRandomStatType();
+            var rarity = PickRandomRarity();
+            var config = statUpgradeConfig.GetConfig(statType, rarity);
+
+            if (config != null)
+            {
+                UIUpgradeSlot slot = Instantiate(UpgradeSlotPrefab, upgradeSlotParent);
+                slot.Setup(config, statType);
+                slot.OnUpgradeClicked += OnUpgradeClicked;
+                currentSlots.Add(slot);
+            }
+        }
+    }
+
 
     private void OnUpgradeClicked(UIUpgradeSlot s)
     {
@@ -146,18 +172,25 @@ public class UIShop : MonoBehaviour
 
     public void ActiveCanvas(bool active)
     {
-        _canvas.enabled = active;
+        // Kill các tween cũ đang chạy trên object này để tránh xung đột
+        _canvasGroup.DOKill();
+
         if (active)
         {
-            _canvasGroup.DOFade(1, 0.5f);
-            Reroll();
+            _canvas.enabled = true;
+            _canvasGroup.alpha = 0f;
+            _canvasGroup.DOFade(1, 0.5f).SetUpdate(true);
+            RerollOnActive();
         }
         else
         {
-            _canvasGroup.DOFade(0, 0.5f);
+            _canvasGroup.DOFade(0, 0.5f)
+                .SetUpdate(true)
+                .OnComplete(() =>
+                {
+                    _canvas.enabled = false;
+                });
         }
-
-
     }
 
 

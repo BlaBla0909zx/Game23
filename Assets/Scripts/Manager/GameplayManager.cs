@@ -29,10 +29,10 @@ public class GameplayManager : MonoBehaviour
     }
 
     private void OnWaveCleared()
-    { 
+    {
         _uiShop.ActiveCanvas(true);
         PauseGame();
-       
+
     }
 
     public void StartGame()
