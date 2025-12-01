@@ -1,4 +1,4 @@
-// Shader "Custom/UnlitDissolve"
+﻿// Shader "Custom/UnlitDissolve"
 // {
     //     Properties
     //     {
@@ -235,78 +235,94 @@ Shader "Universal Render Pipeline/Custom/LitDissolve"
             }
 
             half4 frag(Varyings input) : SV_Target
+{
+        // Sample textures
+        half4 albedoAlpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
+        half4 baseColor   = albedoAlpha * _BaseColor;
+        half  noise       = SAMPLE_TEXTURE2D(_NoiseTex, sampler_NoiseTex, input.uvNoise).r;
+
+        // Nếu dissolve = 1 thì kill luôn toàn bộ mesh
+        if (_DissolveAmount >= 0.999)
+            discard;
+
+        half alpha = baseColor.a;
+        half edgeFactor = 0.0;
+        half d = noise;
+
+        // Chỉ bật dissolve khi Amount > 0.001
+        if (_DissolveAmount > 0.001)
+        {
+            if (_UseAlphaClip > 0.5)
             {
-                // Sample textures
-                half4 albedoAlpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
-                half4 baseColor = albedoAlpha * _BaseColor;
-                
-                half noise = SAMPLE_TEXTURE2D(_NoiseTex, sampler_NoiseTex, input.uvNoise).r;
-                
-                // Dissolve calculation
-                half alpha = baseColor.a;
-                half edgeFactor = 0.0;
-                
-                if (_UseAlphaClip > 0.5)
+                // Hard clip với edge glow
+                half dissolveEdge = _DissolveAmount + _EdgeWidth;
+
+                if (d < _DissolveAmount - _Cutoff)
+                    discard;
+
+                if (d < dissolveEdge)
                 {
-                    // Hard clip with edge glow
-                    half dissolveEdge = _DissolveAmount + _EdgeWidth;
-                    if (noise < _DissolveAmount - _Cutoff)
-                    {
-                        discard;
-                    }
-                    
-                    // Calculate edge glow
-                    if (noise < dissolveEdge)
-                    {
-                        edgeFactor = smoothstep(_DissolveAmount - _EdgeWidth, _DissolveAmount, noise);
-                    }
+                    edgeFactor = smoothstep(_DissolveAmount - _EdgeWidth, _DissolveAmount, d);
                 }
-                else
-                {
-                    // Smooth fade
-                    half reveal = smoothstep(_DissolveAmount - _EdgeWidth, _DissolveAmount + _EdgeWidth, noise);
-                    alpha *= reveal;
-                    if (alpha <= 0.001) discard;
-                    
-                    edgeFactor = 1.0 - reveal;
-                }
-                
-                // Sample additional maps
-                half3 normalTS = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, input.uv), _BumpScale);
-                half occlusion = lerp(1.0, SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, input.uv).g, _OcclusionStrength);
-                half3 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).rgb * _EmissionColor.rgb;
-                
-                // Calculate world space normal
-                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, cross(input.normalWS, input.tangentWS.xyz) * input.tangentWS.w, input.normalWS));
-                normalWS = normalize(normalWS);
-                
-                // Setup surface data
-                InputData inputData = (InputData)0;
-                inputData.positionWS = input.positionWS;
-                inputData.normalWS = normalWS;
-                inputData.viewDirectionWS = SafeNormalize(input.viewDirWS);
-                inputData.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
-                inputData.fogCoord = input.fogCoord;
-                inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-                
-                SurfaceData surfaceData = (SurfaceData)0;
-                surfaceData.albedo = baseColor.rgb;
-                surfaceData.metallic = _Metallic;
-                surfaceData.specular = half3(0.0, 0.0, 0.0);
-                surfaceData.smoothness = _Smoothness;
-                surfaceData.normalTS = normalTS;
-                surfaceData.emission = emission + (_EdgeColor.rgb * edgeFactor * _EdgeIntensity);
-                surfaceData.occlusion = occlusion;
-                surfaceData.alpha = alpha;
-                
-                // Calculate lighting
-                half4 color = UniversalFragmentPBR(inputData, surfaceData);
-                
-                // Apply fog
-                color.rgb = MixFog(color.rgb, inputData.fogCoord);
-                
-                return color;
             }
+            else
+            {
+                // Smooth fade
+                half reveal = smoothstep(_DissolveAmount - _EdgeWidth,
+                                         _DissolveAmount + _EdgeWidth, d);
+                alpha *= reveal;
+                if (alpha <= 0.001) discard;
+
+                edgeFactor = 1.0 - reveal;
+            }
+        }
+        // nếu _DissolveAmount <= 0.001 thì không làm gì, alpha giữ nguyên, edgeFactor = 0
+
+
+        // Sample thêm map
+        half3 normalTS   = UnpackNormalScale(SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, input.uv), _BumpScale);
+        half  occlusion  = lerp(1.0, SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, input.uv).g, _OcclusionStrength);
+        half3 emission   = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv).rgb * _EmissionColor.rgb;
+
+        // Normal world space
+        half3 normalWS = TransformTangentToWorld(
+            normalTS,
+            half3x3(
+                input.tangentWS.xyz,
+                cross(input.normalWS, input.tangentWS.xyz) * input.tangentWS.w,
+                input.normalWS
+            )
+        );
+        normalWS = normalize(normalWS);
+
+        // InputData cho URP
+        InputData inputData = (InputData)0;
+        inputData.positionWS      = input.positionWS;
+        inputData.normalWS        = normalWS;
+        inputData.viewDirectionWS = SafeNormalize(input.viewDirWS);
+        inputData.shadowCoord     = TransformWorldToShadowCoord(input.positionWS);
+        inputData.fogCoord        = input.fogCoord;
+        inputData.bakedGI         = SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+
+        SurfaceData surfaceData = (SurfaceData)0;
+        surfaceData.albedo     = baseColor.rgb;
+        surfaceData.metallic   = _Metallic;
+        surfaceData.specular   = half3(0.0, 0.0, 0.0);
+        surfaceData.smoothness = _Smoothness;
+        surfaceData.normalTS   = normalTS;
+        surfaceData.emission   = emission + (_EdgeColor.rgb * edgeFactor * _EdgeIntensity);
+        surfaceData.occlusion  = occlusion;
+        surfaceData.alpha      = alpha;
+
+        // Lighting
+        half4 color = UniversalFragmentPBR(inputData, surfaceData);
+
+        // Fog
+        color.rgb = MixFog(color.rgb, inputData.fogCoord);
+
+        return color;
+    }
+
             ENDHLSL
         }
         
