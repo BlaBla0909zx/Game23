@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -141,6 +141,11 @@ public abstract class EnemyBase : MonoBehaviour, IHealthBar, IDamageable
 
     public virtual void Attack() //use in animation event
     {
+        if (playerStats == null) return;
+
+        if (!IsInAttackRange())
+            return; // ngoài tầm thì không trúng
+
         playerStats.TakeDamage(enemyStat.attackDamage);
         var vfx = VFXPoolManager.Instance.GetEffect(VisualEffectID.Blood);
         vfx.transform.position = playerStats.transform.position + Vector3.up * 1.0f;
