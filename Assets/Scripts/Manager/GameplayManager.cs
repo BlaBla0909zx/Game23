@@ -30,6 +30,13 @@ public class GameplayManager : MonoBehaviour
 
     private void OnWaveCleared()
     {
+        if (WaveManager.Instance != null &&
+            WaveManager.Instance.currentWaveIndex >= WaveManager.Instance.waves.Count - 1)
+        {
+            // Final wave cleared: skip shop and allow game clear UI to appear instead
+            return;
+        }
+
         _uiShop.ActiveCanvas(true);
         PauseGame();
 

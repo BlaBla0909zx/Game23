@@ -32,6 +32,7 @@ public class WaveManager : MonoBehaviour
 
     public static event Action<int> OnWaveStarted;   // int = wave index
     public static event Action OnWaveCleared;   // int = wave index
+    public static event Action OnAllWavesCleared;
 
 
 
@@ -173,6 +174,7 @@ public class WaveManager : MonoBehaviour
             if (currentWaveIndex >= waves.Count)
             {
                 Debug.Log("All waves completed!");
+                OnAllWavesCleared?.Invoke();
             }
         }
     }
