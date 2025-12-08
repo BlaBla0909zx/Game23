@@ -50,17 +50,6 @@ public class UIShop : MonoBehaviour
 
             // Unpause game
             GameplayManager.Instance.ResumeGame();
-
-            //  THÊM: Start wave tiếp theo
-            if (WaveManager.Instance != null)
-            {
-                Debug.Log($"[UIShop] Starting wave {WaveManager.Instance.GetCurrentWaveNumber()}");
-                WaveManager.Instance.StartNextWave();
-            }
-            else
-            {
-                Debug.LogError("[UIShop] WaveManager.Instance is null!");
-            }
         });
         RerollButton.onClick.AddListener(Reroll);
         // InitializeSkills();
