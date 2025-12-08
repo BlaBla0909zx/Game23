@@ -212,6 +212,24 @@ public class GameOverManager : MonoBehaviour
         RestartGame();
     }
 
+    /// <summary>
+    /// Reset audio/UI state when returning to the menu so the next run has music
+    /// </summary>
+    public void PrepareReturnToMenu()
+    {
+        // Clear any defeat music and bring back the base gameplay track
+        StopGameplayMusic();
+        ResumeGameplayMusic();
+
+        // Hide lose screen to avoid lingering overlays if the gameplay scene reloads
+        if (loseScreenUI != null)
+        {
+            loseScreenUI.HideLoseScreen();
+        }
+
+        isGameOver = false;
+    }
+
     private void StopGameplayMusic()
     {
         if (AudioManager.Instance != null)

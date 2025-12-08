@@ -241,6 +241,19 @@ public class LoseScreenUI : MonoBehaviour
     /// </summary>
     private void OnBackToMenuClicked()
     {
+        PlayButtonClickSound();
+
+        var gameOverManager = FindObjectOfType<GameOverManager>();
+        if (gameOverManager != null)
+        {
+            gameOverManager.PrepareReturnToMenu();
+        }
+        else if (AudioManager.Instance != null)
+        {
+            // Fall back to stopping defeat music so menu/gameplay can restore their own tracks
+            AudioManager.Instance.StopMusic(fadeOut: false);
+        }
+
         Loader.Load(Loader.Scene.Loading);
     }
 
