@@ -37,19 +37,16 @@ public class GameplayManager : MonoBehaviour
 
     public void StartGame()
     {
-        Time.timeScale = 1f;
         WaveManager.Instance.StartNextWave();
     }
 
     public void PauseGame()
     {
-        Time.timeScale = 0f;
         _isPaused = true;
     }
 
     public void ResumeGame()
     {
-        Time.timeScale = 1f;
         _isPaused = false;
         _uiShop.ActiveCanvas(false);
         WaveManager.Instance.StartNextWave();

@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Simple manager that handles game over when player dies
@@ -14,14 +15,15 @@ public class GameOverManager : MonoBehaviour
     [SerializeField]
     private LoseScreenUI loseScreenUI;
 
+    [Header("Audio")]
+    [SerializeField]
+    private string gameplayMusicName = "bg";
+
 
 
     [Header("Game Over Settings")]
     [SerializeField]
     private float gameOverDelay = 1f;
-
-    [SerializeField]
-    private bool pauseGameOnDeath = true;
 
     [Header("Debug")]
     [SerializeField]
@@ -56,12 +58,6 @@ public class GameOverManager : MonoBehaviour
         {
             playerStats.OnPlayerDeath -= OnPlayerDied;
         }
-
-        // Ensure time scale is reset
-        if (Time.timeScale == 0f)
-        {
-            Time.timeScale = 1f;
-        }
     }
 
     /// <summary>
@@ -89,31 +85,36 @@ public class GameOverManager : MonoBehaviour
         if (debugMode)
             Debug.Log("GameOverManager: Triggering game over sequence...");
 
-        // Pause the game
-        if (pauseGameOnDeath)
+        // Stop current gameplay music before switching to defeat audio
+        StopGameplayMusic();
+
+        // Show lose screen without altering time scale
+        if (loseScreenUI != null)
         {
-            PauseGame();
+            loseScreenUI.ShowLoseScreen();
+        }
+        else if (debugMode)
+        {
+            Debug.LogWarning("GameOverManager: LoseScreenUI reference missing");
         }
 
     }
 
     /// <summary>
-    /// Pause the game (set time scale to 0)
+    /// Pause the game (legacy placeholder, time scale no longer adjusted)
     /// </summary>
     public void PauseGame()
     {
-        Time.timeScale = 0f;
-        Debug.Log("GameOverManager: Game paused (time scale = 0)");
+        Debug.Log("GameOverManager: Pause requested (time scale unchanged)");
     }
 
     /// <summary>
-    /// Resume the game (set time scale to 1)
+    /// Resume the game (legacy placeholder, time scale no longer adjusted)
     /// </summary>
     public void ResumeGame()
     {
-        Time.timeScale = 1f;
         if (debugMode)
-            Debug.Log("GameOverManager: Game resumed (time scale = 1)");
+            Debug.Log("GameOverManager: Game resumed (time scale unchanged)");
     }
 
     /// <summary>
@@ -126,6 +127,12 @@ public class GameOverManager : MonoBehaviour
 
         // Resume game time
         ResumeGame();
+
+        // Hide lose screen state so it can show again after the restart
+        if (loseScreenUI != null)
+        {
+            loseScreenUI.HideLoseScreen();
+        }
 
         // Reset game over state
         isGameOver = false;
@@ -146,6 +153,9 @@ public class GameOverManager : MonoBehaviour
         {
             playerStats.ResetHealth();
         }
+
+        // Resume gameplay music after stopping defeat track
+        ResumeGameplayMusic();
     }
 
 
@@ -157,11 +167,10 @@ public class GameOverManager : MonoBehaviour
     /// <summary>
     /// Reload the current scene as fallback
     /// </summary>
-    private void ReloadCurrentScene()
+    public void ReloadCurrentScene()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
-        );
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(currentScene.name);
     }
 
     /// <summary>
@@ -201,5 +210,24 @@ public class GameOverManager : MonoBehaviour
     public void ForceRestart()
     {
         RestartGame();
+    }
+
+    private void StopGameplayMusic()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopMusic(fadeOut: true, fadeTime: 0.5f);
+        }
+    }
+
+    private void ResumeGameplayMusic()
+    {
+        if (
+            AudioManager.Instance != null
+            && !string.IsNullOrEmpty(gameplayMusicName)
+        )
+        {
+            AudioManager.Instance.PlayMusic(gameplayMusicName, fadeIn: true, fadeTime: 1f);
+        }
     }
 }

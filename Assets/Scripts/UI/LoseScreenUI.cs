@@ -166,6 +166,7 @@ public class LoseScreenUI : MonoBehaviour
     /// </summary>
     private void AnimateOut()
     {
+        isVisible = false;
         canvasGroup.interactable = false;
         canvasGroup
             .DOFade(0f, fadeInDuration * 0.5f)
@@ -218,11 +219,12 @@ public class LoseScreenUI : MonoBehaviour
         // Stop lose music
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.StopMusic(fadeOut: true, fadeTime: 1f);
+            // Stop defeat music immediately so the gameplay track cannot be faded out mid-restart
+            AudioManager.Instance.StopMusic(fadeOut: false);
         }
 
-        // Animate out and restart game
-        AnimateOut();
+        // Hide lose screen and restart game
+        HideLoseScreen();
 
         // Wait for animation to complete, then restart game (use unscaled time)
         DOVirtual.DelayedCall(
