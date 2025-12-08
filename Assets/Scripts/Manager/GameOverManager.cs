@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Simple manager that handles game over when player dies
@@ -13,6 +14,9 @@ public class GameOverManager : MonoBehaviour
 
     [SerializeField]
     private LoseScreenUI loseScreenUI;
+    [Header("Audio")]
+    [SerializeField]
+    private string gameplayMusicName = "bg";    
 
 
 
@@ -20,8 +24,7 @@ public class GameOverManager : MonoBehaviour
     [SerializeField]
     private float gameOverDelay = 1f;
 
-    [SerializeField]
-    private bool pauseGameOnDeath = true;
+    
 
     [Header("Debug")]
     [SerializeField]
@@ -58,10 +61,7 @@ public class GameOverManager : MonoBehaviour
         }
 
         // Ensure time scale is reset
-        if (Time.timeScale == 0f)
-        {
-            Time.timeScale = 1f;
-        }
+        
     }
 
     /// <summary>
@@ -90,30 +90,41 @@ public class GameOverManager : MonoBehaviour
             Debug.Log("GameOverManager: Triggering game over sequence...");
 
         // Pause the game
-        if (pauseGameOnDeath)
-        {
-            PauseGame();
-        }
+        StopGameplayMusic();
+        // Show lose screen without altering time scale
+        if (loseScreenUI != null)
+            {
+                loseScreenUI.ShowLoseScreen();
+            }
+            else if (debugMode)
+            {
+                
+                Debug.LogWarning("GameOverManager: LoseScreenUI reference missing");
+            }
 
     }
 
     /// <summary>
     /// Pause the game (set time scale to 0)
+    /// Pause the game (legacy placeholder, time scale no longer adjusted)
     /// </summary>
     public void PauseGame()
     {
-        Time.timeScale = 0f;
-        Debug.Log("GameOverManager: Game paused (time scale = 0)");
+        //Time.timeScale = 0f;
+        //Debug.Log("GameOverManager: Game paused (time scale = 0)");
+        Debug.Log("GameOverManager: Pause requested (time scale unchanged)");
     }
 
     /// <summary>
     /// Resume the game (set time scale to 1)
+    /// Resume the game (legacy placeholder, time scale no longer adjusted)
     /// </summary>
     public void ResumeGame()
     {
-        Time.timeScale = 1f;
+       
         if (debugMode)
-            Debug.Log("GameOverManager: Game resumed (time scale = 1)");
+            
+            Debug.Log("GameOverManager: Game resumed (time scale unchanged)");
     }
 
     /// <summary>
@@ -126,6 +137,10 @@ public class GameOverManager : MonoBehaviour
 
         // Resume game time
         ResumeGame();
+        if (loseScreenUI != null)
+        {
+            loseScreenUI.HideLoseScreen();
+        }
 
         // Reset game over state
         isGameOver = false;
@@ -140,66 +155,97 @@ public class GameOverManager : MonoBehaviour
             Debug.LogWarning("GameOverManager: WaveManager not found! Reloading scene instead.");
             ReloadCurrentScene();
         }
-
-        // Reset player health
         if (playerStats != null)
         {
             playerStats.ResetHealth();
         }
+        // Resume gameplay music after stopping defeat track
+        ResumeGameplayMusic();
+        //if (
+          //  AudioManager.Instance != null
+          //  && !string.IsNullOrEmpty(gameplayMusicName)
+        //)
+        //{
+          //  AudioManager.Instance.PlayMusic(gameplayMusicName, fadeIn: true, fadeTime: 1f);
+        //}
     }
-
-
-    /// <summary>
-    /// Get survival time from game systems
-    /// </summary>
-
-
-    /// <summary>
-    /// Reload the current scene as fallback
-    /// </summary>
-    private void ReloadCurrentScene()
+    public void ReloadCurrentScene()
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
-        );
+            //UnityEngine.SceneManagement.SceneManager.LoadScene(
+                //UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
+            
+            Scene currentScene = SceneManager.GetActiveScene();
+            SceneManager.LoadScene(currentScene.name);
     }
 
-    /// <summary>
-    /// Check if game is currently over
-    /// </summary>
-    /// <returns>True if game is over</returns>
+        /// <summary>
+        /// Check if game is currently over
+        /// </summary>
+        /// <returns>True if game is over</returns>
     public bool IsGameOver()
-    {
-        return isGameOver;
-    }
+        {
+            return isGameOver;
+        }
 
-    /// <summary>
-    /// Force trigger game over (for testing)
-    /// </summary>
+        /// <summary>
+        /// Force trigger game over (for testing)
+        /// </summary>
     [ContextMenu("Force Game Over")]
     public void ForceGameOver()
-    {
-        if (!isGameOver && playerStats != null)
         {
-            // Force player to die by dealing enough damage
-            float damageAmount = playerStats.GetCurrentHealth() + 1;
-            DamageResult damageResult = new DamageResult
+            if (!isGameOver && playerStats != null)
             {
-                FinalDamage = damageAmount,
-                IsCrit = false,
-                IsMiss = false,
-                IsLifeSteal = false
-            };
-            playerStats.TakeDamage(damageResult, Vector3.zero);
+                // Force player to die by dealing enough damage
+                float damageAmount = playerStats.GetCurrentHealth() + 1;
+                DamageResult damageResult = new DamageResult
+                {
+                    FinalDamage = damageAmount,
+                    IsCrit = false,
+                    IsMiss = false,
+                    IsLifeSteal = false
+                };
+                playerStats.TakeDamage(damageResult, Vector3.zero);
+            }
         }
-    }
 
-    /// <summary>
-    /// Force restart game (for testing)
-    /// </summary>
-    [ContextMenu("Force Restart")]
-    public void ForceRestart()
+        /// <summary>
+        /// Force restart game (for testing)
+        /// </summary>
+        [ContextMenu("Force Restart")]
+        public void ForceRestart()
+        {
+            RestartGame();
+        }
+    public void PrepareReturnToMenu()
     {
-        RestartGame();
+        // Clear any defeat music and bring back the base gameplay track
+        StopGameplayMusic();
+        ResumeGameplayMusic();
+
+        // Hide lose screen to avoid lingering overlays if the gameplay scene reloads
+        if (loseScreenUI != null)
+        {
+            loseScreenUI.HideLoseScreen();
+        }
+
+        isGameOver = false;
     }
+    private void StopGameplayMusic()
+        {
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.StopMusic(fadeOut: true, fadeTime: 0.5f);
+            }
+        }
+
+        private void ResumeGameplayMusic()
+        {
+            if (
+                AudioManager.Instance != null
+                && !string.IsNullOrEmpty(gameplayMusicName)
+            )
+            {
+                AudioManager.Instance.PlayMusic(gameplayMusicName, fadeIn: true, fadeTime: 1f);
+            }
+        }
 }

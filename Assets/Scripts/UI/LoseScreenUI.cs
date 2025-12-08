@@ -166,6 +166,7 @@ public class LoseScreenUI : MonoBehaviour
     /// </summary>
     private void AnimateOut()
     {
+        isVisible = false;
         canvasGroup.interactable = false;
         canvasGroup
             .DOFade(0f, fadeInDuration * 0.5f)
@@ -218,11 +219,12 @@ public class LoseScreenUI : MonoBehaviour
         // Stop lose music
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.StopMusic(fadeOut: true, fadeTime: 1f);
+            AudioManager.Instance.StopMusic(fadeOut: false);
         }
 
         // Animate out and restart game
-        AnimateOut();
+        //AnimateOut();
+        HideLoseScreen();
 
         // Wait for animation to complete, then restart game (use unscaled time)
         DOVirtual.DelayedCall(
@@ -239,6 +241,18 @@ public class LoseScreenUI : MonoBehaviour
     /// </summary>
     private void OnBackToMenuClicked()
     {
+        PlayButtonClickSound();
+
+        var gameOverManager = FindObjectOfType<GameOverManager>();
+        if (gameOverManager != null)
+        {
+            gameOverManager.PrepareReturnToMenu();
+        }
+        else if (AudioManager.Instance != null)
+        {
+            // Fall back to stopping defeat music so menu/gameplay can restore their own tracks
+            AudioManager.Instance.StopMusic(fadeOut: false);
+        }
         Loader.Load(Loader.Scene.Loading);
     }
 
