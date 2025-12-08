@@ -1,57 +1,44 @@
-using TMPro;
+ï»¿using TMPro;
 using UnityEngine;
-using System.Collections;
-
 public class UIEnemyCount : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI enemyCountText;
     private WaveManager waveManager;
-
-    private IEnumerator Start()
+    private void Start()
     {
-        // WaveManager‚ª‰Šú‰»‚³‚ê‚é‚Ü‚Å‘Ò‚Â
-        yield return new WaitUntil(() => WaveManager.Instance != null);
         waveManager = WaveManager.Instance;
-
-        if (enemyCountText == null)
+        if (enemyCountText == null || waveManager == null)
         {
-            Debug.LogError("UIEnemyCount: enemyCountText ‚ª–¢Ý’è‚Å‚·B");
-            yield break;
+            Debug.LogError("UIEnemyCount: Text hoáº·c WaveManager chÆ°a gÃ¡n!");
+            return;
         }
-
         UpdateEnemyCountText();
     }
-
     private void OnEnable()
     {
+        WaveManager.OneEnemyKilled += OnEnemyKilled;
         WaveManager.OnWaveCleared += OnWaveCleared;
+        WaveManager.OnWaveStarted += OnWaveStarted;
     }
-
     private void OnDisable()
     {
+        WaveManager.OneEnemyKilled -= OnEnemyKilled;
         WaveManager.OnWaveCleared -= OnWaveCleared;
+        WaveManager.OnWaveStarted -= OnWaveStarted;
     }
-
-    private void Update()
-    {
-        if (waveManager != null)
-        {
-            UpdateEnemyCountText();
-        }
-    }
-
-    private void UpdateEnemyCountText()
-    {
-        if (waveManager == null || enemyCountText == null) return;
-
-        int killed = waveManager.CurrentWaveKilledEnemies;
-        int total = waveManager.GetCurrentWaveTotalEnemies();
-        enemyCountText.text = $"Enemies Left: {killed} / {total}";
-    }
-
+    private void OnEnemyKilled() => UpdateEnemyCountText();
+    private void OnWaveStarted(int waveIndex) => UpdateEnemyCountText();
     private void OnWaveCleared()
     {
         if (enemyCountText != null)
             enemyCountText.text = "Enemies Left: 0 / 0";
+    }
+    private void UpdateEnemyCountText()
+    {
+        if (waveManager == null || enemyCountText == null) return;
+        int killed = waveManager.CurrentWaveKilledEnemies;
+        int total = waveManager.GetCurrentWaveTotalEnemies();
+        int remaining = Mathf.Max(total - killed, 0);
+        enemyCountText.text = $"Enemies Left: {remaining} / {total}";
     }
 }
