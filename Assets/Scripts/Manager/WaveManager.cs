@@ -80,6 +80,39 @@ public class WaveManager : MonoBehaviour
         StartCoroutine(SpawnWave(wave));
     }
 
+    private IEnumerator WaitForWaveIntro()
+    {
+        float waitTime = 0f;
+        bool finished = false;
+
+        void OnWaveBannerFinished()
+        {
+            finished = true;
+        }
+
+        bool hasWaveUI = UIWaveCount.Instance != null && UIWaveCount.Instance.isActiveAndEnabled;
+
+        UIWaveCount.OnWaveBannerFinished += OnWaveBannerFinished;
+
+        if (hasWaveUI)
+        {
+            waitTime = UIWaveCount.Instance.GetAnimationDuration();
+        }
+        else
+        {
+            finished = true;
+        }
+
+        float elapsed = 0f;
+        while (!finished && elapsed < waitTime + 0.5f)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        UIWaveCount.OnWaveBannerFinished -= OnWaveBannerFinished;
+    }
+
     private IEnumerator SpawnWave(EnemyWaveSO wave)
     {
         isSpawningWave = true;
@@ -96,6 +129,7 @@ public class WaveManager : MonoBehaviour
         }
 
         OnWaveStarted?.Invoke(currentWaveIndex);
+        yield return WaitForWaveIntro();
         Debug.Log($"Wave {currentWaveIndex + 1} started! (Total Enemies: {_currentWaveTotalEnemies})"); foreach (var entry in wave.enemies)
         {
             yield return new WaitForSeconds(entry.startDelay);
@@ -136,28 +170,13 @@ public class WaveManager : MonoBehaviour
         {
             OnWaveCleared?.Invoke();
             currentWaveIndex++;
-
-            if (currentWaveIndex < waves.Count)
-            {
-                StartCoroutine(StartNextWaveAfterDelay(2f));
-            }
-            else
+            if (currentWaveIndex >= waves.Count)
             {
                 Debug.Log("All waves completed!");
             }
         }
     }
 
-
-    /// <summary>
-    /// Start next wave after a delay
-    /// </summary>
-    /// <param name="delay">Delay in seconds</param>
-    private IEnumerator StartNextWaveAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        StartNextWave();
-    }
 
     /// <summary>
     /// Restart all waves (for game restart functionality)
