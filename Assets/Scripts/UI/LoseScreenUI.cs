@@ -32,6 +32,9 @@ public class LoseScreenUI : MonoBehaviour
     [SerializeField]
     private string buttonClickSFX = "ButtonClick";
 
+    [SerializeField]
+    private string fallbackMenuMusicName = "bg";
+
     private CanvasGroup canvasGroup;
     private bool isVisible = false;
 
@@ -120,7 +123,7 @@ public class LoseScreenUI : MonoBehaviour
     private void AnimateIn()
     {
         Debug.Log("LoseScreenUI: Starting AnimateIn");
-        
+
         // Show buttons immediately without animation
         if (playAgainButton != null)
         {
@@ -219,11 +222,11 @@ public class LoseScreenUI : MonoBehaviour
         // Stop lose music
         if (AudioManager.Instance != null)
         {
+            // Stop defeat music immediately so the gameplay track cannot be faded out mid-restart
             AudioManager.Instance.StopMusic(fadeOut: false);
         }
 
-        // Animate out and restart game
-        //AnimateOut();
+        // Hide lose screen and restart game
         HideLoseScreen();
 
         // Wait for animation to complete, then restart game (use unscaled time)
@@ -250,9 +253,13 @@ public class LoseScreenUI : MonoBehaviour
         }
         else if (AudioManager.Instance != null)
         {
-            // Fall back to stopping defeat music so menu/gameplay can restore their own tracks
-            AudioManager.Instance.StopMusic(fadeOut: false);
+            // Fall back to restoring a neutral track so the loading/menu scenes have audio
+            if (!string.IsNullOrEmpty(fallbackMenuMusicName))
+            {
+                AudioManager.Instance.PlayMusic(fallbackMenuMusicName, fadeIn: true, fadeTime: 0.5f);
+            }
         }
+
         Loader.Load(Loader.Scene.Loading);
     }
 
@@ -351,7 +358,7 @@ public class LoseScreenUI : MonoBehaviour
     public void ForceShowButtons()
     {
         Debug.Log("LoseScreenUI: Force showing buttons");
-        
+
         if (playAgainButton != null)
         {
             playAgainButton.transform.localScale = Vector3.one;
