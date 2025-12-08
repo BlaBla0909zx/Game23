@@ -49,6 +49,9 @@ public class GameOverManager : MonoBehaviour
         {
             Debug.LogError("GameOverManager: PlayerStats not found!");
         }
+
+        // Ensure base gameplay music is active whenever the gameplay scene loads
+        ResumeGameplayMusic();
     }
 
     private void OnDestroy()
