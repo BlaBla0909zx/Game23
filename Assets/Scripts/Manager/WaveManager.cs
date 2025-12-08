@@ -48,6 +48,8 @@ public class WaveManager : MonoBehaviour
 
     private int _currentWaveTotalEnemies = 0;
     private int _currentWaveKilledEnemies = 0; // 🆕 追加
+    private bool _isCurrentWaveCleared = false;
+    private bool _hasTriggeredAllWavesCleared = false;
 
     public int CurrentWaveTotalEnemies => _currentWaveTotalEnemies;
     public int CurrentWaveKilledEnemies => _currentWaveKilledEnemies;
@@ -70,6 +72,8 @@ public class WaveManager : MonoBehaviour
         currentWaveIndex = 0;
         aliveEnemies.Value = 0;
         isSpawningWave = false;
+        _isCurrentWaveCleared = false;
+        _hasTriggeredAllWavesCleared = false;
     }
 
     public void StartNextWave()
@@ -78,6 +82,7 @@ public class WaveManager : MonoBehaviour
         if (currentWaveIndex >= waves.Count) return;
 
         EnemyWaveSO wave = waves[currentWaveIndex];
+        _isCurrentWaveCleared = false;
         StartCoroutine(SpawnWave(wave));
     }
 
@@ -131,7 +136,9 @@ public class WaveManager : MonoBehaviour
 
         OnWaveStarted?.Invoke(currentWaveIndex);
         yield return WaitForWaveIntro();
-        Debug.Log($"Wave {currentWaveIndex + 1} started! (Total Enemies: {_currentWaveTotalEnemies})"); foreach (var entry in wave.enemies)
+        Debug.Log($"Wave {currentWaveIndex + 1} started! (Total Enemies: {_currentWaveTotalEnemies})");
+
+        foreach (var entry in wave.enemies)
         {
             yield return new WaitForSeconds(entry.startDelay);
 
@@ -141,7 +148,11 @@ public class WaveManager : MonoBehaviour
                 yield return new WaitForSeconds(entry.spawnRate);
             }
         }
+
         isSpawningWave = false;
+
+        // Nếu tất cả enemy đã bị tiêu diệt trước khi việc spawn kết thúc, đảm bảo vẫn trigger wave clear
+        TryCompleteWave();
     }
     private void SpawnEnemy(EnemyEntry entry)
     {
@@ -167,16 +178,7 @@ public class WaveManager : MonoBehaviour
         // 🆕 Gọi event mỗi khi 1 enemy bị giết
         OneEnemyKilled?.Invoke();
 
-        if (aliveEnemies.Value <= 0 && !isSpawningWave)
-        {
-            OnWaveCleared?.Invoke();
-            currentWaveIndex++;
-            if (currentWaveIndex >= waves.Count)
-            {
-                Debug.Log("All waves completed!");
-                OnAllWavesCleared?.Invoke();
-            }
-        }
+        TryCompleteWave();
     }
 
 
@@ -220,6 +222,31 @@ public class WaveManager : MonoBehaviour
         }
 
         aliveEnemies.Value = 0;
+    }
+
+    private void TryCompleteWave()
+    {
+        if (_isCurrentWaveCleared)
+        {
+            return;
+        }
+
+        if (isSpawningWave || aliveEnemies.Value > 0)
+        {
+            return;
+        }
+
+        _isCurrentWaveCleared = true;
+
+        OnWaveCleared?.Invoke();
+        currentWaveIndex++;
+
+        if (currentWaveIndex >= waves.Count && !_hasTriggeredAllWavesCleared)
+        {
+            _hasTriggeredAllWavesCleared = true;
+            Debug.Log("All waves completed!");
+            OnAllWavesCleared?.Invoke();
+        }
     }
 
 
