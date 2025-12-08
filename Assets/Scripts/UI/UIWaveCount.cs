@@ -1,42 +1,67 @@
 ﻿using TMPro;
 using UnityEngine;
 using System.Collections;
-
 public class UIWaveCount : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI waveText;
-    private WaveManager waveManager;
-
+    [SerializeField] private RectTransform waveRect;
+    [SerializeField] private float moveDuration = 0.6f;
+    [SerializeField] private float stayDuration = 5f;
+    private Vector2 offScreenLeft;
+    private Vector2 offScreenRight;
+    private Vector2 centerScreen;
+    private void Awake()
+    {
+        waveRect.anchorMin = new Vector2(0.5f, 0.5f);
+        waveRect.anchorMax = new Vector2(0.5f, 0.5f);
+        waveRect.pivot = new Vector2(0.5f, 0.5f);
+        centerScreen = Vector2.zero;
+        RectTransform canvasRect = waveRect.GetComponentInParent<Canvas>().GetComponent<RectTransform>();
+        float width = canvasRect.rect.width;
+        offScreenLeft = new Vector2(-width * 0.6f, 0);
+        offScreenRight = new Vector2(width * 0.6f, 0);
+    }
     private IEnumerator Start()
     {
-        // WaveManagerが初期化されるまで待つ
         yield return new WaitUntil(() => WaveManager.Instance != null);
-        waveManager = WaveManager.Instance;
-
-        if (waveText == null)
-        {
-            Debug.LogError("UIWaveCount: waveText が未設定です。");
-            yield break;
-        }
-
-        UpdateWaveTextSafe(waveManager.GetCurrentWaveNumber() - 1);
+        // Hiển thị wave hiện tại ngay
+        UpdateWaveTextSafe(WaveManager.Instance.GetCurrentWaveNumber() - 1);
     }
-
     private void OnEnable()
     {
         WaveManager.OnWaveStarted += UpdateWaveTextSafe;
     }
-
     private void OnDisable()
     {
         WaveManager.OnWaveStarted -= UpdateWaveTextSafe;
     }
-
     private void UpdateWaveTextSafe(int waveIndex)
     {
-        if (waveManager == null || waveText == null) return;
-
+        if (waveText == null) return;
         int displayWave = waveIndex + 1;
-        waveText.text = $"Wave: {displayWave} / {waveManager.GetTotalWaves()}";
+        int totalWaves = WaveManager.Instance.GetTotalWaves();
+        waveText.text = $"Wave: {displayWave} / {totalWaves}";
+        StopAllCoroutines();
+        StartCoroutine(PlayWaveAnimation());
+    }
+    private IEnumerator PlayWaveAnimation()
+    {
+        waveRect.anchoredPosition = offScreenLeft;
+        yield return MoveUI(waveRect, offScreenLeft, centerScreen, moveDuration);
+        yield return new WaitForSeconds(stayDuration);
+        yield return MoveUI(waveRect, centerScreen, offScreenRight, moveDuration);
+        waveText.enabled = false;
+    }
+    private IEnumerator MoveUI(RectTransform rect, Vector2 from, Vector2 to, float duration)
+    {
+        float t = 0;
+        rect.gameObject.SetActive(true);
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            rect.anchoredPosition = Vector2.Lerp(from, to, t / duration);
+            yield return null;
+        }
+        rect.anchoredPosition = to;
     }
 }

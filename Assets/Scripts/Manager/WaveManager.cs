@@ -24,17 +24,23 @@ public class WaveManager : MonoBehaviour
     public List<EnemyWaveSO> waves;           // danh sách wave
     public int currentWaveIndex = 0;
 
+    public static event Action OnEnemyKilled;       // event hiện tại
+    public static event Action OneEnemyKilled;      // 🆕 Event mới cho mỗi enemy bị giết
+
+
     public ObservableValue<int> aliveEnemies = new(0); // số lượng enemy còn sống
 
     public static event Action<int> OnWaveStarted;   // int = wave index
     public static event Action OnWaveCleared;   // int = wave index
 
+
+
     private bool isSpawningWave = false;
-    
+
     [Header("Game Stats")]
     public float gameStartTime;
     public int enemiesKilled = 0;
-    
+
     // Properties for external access
     public float GameTime => Time.time - gameStartTime;
     public int EnemiesKilled => enemiesKilled;
@@ -52,7 +58,7 @@ public class WaveManager : MonoBehaviour
         InitializeGame();
         StartNextWave(); // auto start wave đầu
     }
-    
+
     /// <summary>
     /// Initialize game stats and start time
     /// </summary>
@@ -117,28 +123,32 @@ public class WaveManager : MonoBehaviour
         Radar.Instance?.RegisterEnemy(enemyObj.transform);
     }
 
-private void HandleEnemyDeath()
-{
-    aliveEnemies.Value = Mathf.Max(0, aliveEnemies.Value - 1);
-    enemiesKilled++; // 全体累計
-    _currentWaveKilledEnemies++; // 🆕 Wave内カウント
-
-    if (aliveEnemies.Value <= 0 && !isSpawningWave)
+    private void HandleEnemyDeath()
     {
-        OnWaveCleared?.Invoke();
-        currentWaveIndex++;
+        aliveEnemies.Value = Mathf.Max(0, aliveEnemies.Value - 1);
+        enemiesKilled++; // 全体累計
+        _currentWaveKilledEnemies++; // 🆕 Wave内カウント
 
-        if (currentWaveIndex < waves.Count)
+        // 🆕 Gọi event mỗi khi 1 enemy bị giết
+        OneEnemyKilled?.Invoke();
+
+        if (aliveEnemies.Value <= 0 && !isSpawningWave)
         {
-            StartCoroutine(StartNextWaveAfterDelay(2f));
-        }
-        else
-        {
-            Debug.Log("All waves completed!");
+            OnWaveCleared?.Invoke();
+            currentWaveIndex++;
+
+            if (currentWaveIndex < waves.Count)
+            {
+                StartCoroutine(StartNextWaveAfterDelay(2f));
+            }
+            else
+            {
+                Debug.Log("All waves completed!");
+            }
         }
     }
-}
-    
+
+
     /// <summary>
     /// Start next wave after a delay
     /// </summary>
@@ -148,7 +158,7 @@ private void HandleEnemyDeath()
         yield return new WaitForSeconds(delay);
         StartNextWave();
     }
-    
+
     /// <summary>
     /// Restart all waves (for game restart functionality)
     /// </summary>
@@ -156,19 +166,19 @@ private void HandleEnemyDeath()
     {
         // Stop all coroutines
         StopAllCoroutines();
-        
+
         // Clear all alive enemies
         ClearAllEnemies();
-        
+
         // Reset game state
         InitializeGame();
-        
+
         // Start first wave
         StartNextWave();
-        
+
         Debug.Log("WaveManager: Game restarted!");
     }
-    
+
     /// <summary>
     /// Clear all alive enemies from the scene
     /// </summary>
@@ -182,16 +192,16 @@ private void HandleEnemyDeath()
             {
                 // Unregister from radar
                 Radar.Instance?.UnregisterEnemy(enemy.transform);
-                
+
                 // Destroy enemy
                 Destroy(enemy.gameObject);
             }
         }
-        
+
         aliveEnemies.Value = 0;
     }
-    
-    
+
+
     /// <summary>
     /// Get current wave number (1-based)
     /// </summary>
@@ -200,7 +210,7 @@ private void HandleEnemyDeath()
     {
         return currentWaveIndex + 1;
     }
-    
+
     /// <summary>
     /// Get total number of waves
     /// </summary>
@@ -209,7 +219,7 @@ private void HandleEnemyDeath()
     {
         return waves.Count;
     }
-    
+
     /// <summary>
     /// Check if all waves are completed
     /// </summary>
@@ -218,7 +228,7 @@ private void HandleEnemyDeath()
     {
         return currentWaveIndex >= waves.Count;
     }
-    
+
     /// <summary>
     /// Pause wave spawning (useful for game pause)
     /// </summary>
@@ -227,7 +237,7 @@ private void HandleEnemyDeath()
         StopAllCoroutines();
         isSpawningWave = false;
     }
-    
+
     /// <summary>
     /// Resume wave spawning
     /// </summary>

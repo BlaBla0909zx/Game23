@@ -46,7 +46,21 @@ public class UIShop : MonoBehaviour
         PlayerStats.Instance.OnStatChanged += HandleStatChanged;
         countinueButton.onClick.AddListener(() =>
         {
-            GameplayManager.Instance.ResumeGame();  // �� StartGame() �ł͂Ȃ� ResumeGame()
+            Debug.Log("[UIShop] Continue button clicked");
+
+            // Unpause game
+            GameplayManager.Instance.ResumeGame();
+
+            //  THÊM: Start wave tiếp theo
+            if (WaveManager.Instance != null)
+            {
+                Debug.Log($"[UIShop] Starting wave {WaveManager.Instance.GetCurrentWaveNumber()}");
+                WaveManager.Instance.StartNextWave();
+            }
+            else
+            {
+                Debug.LogError("[UIShop] WaveManager.Instance is null!");
+            }
         });
         RerollButton.onClick.AddListener(Reroll);
         // InitializeSkills();
