@@ -32,6 +32,9 @@ public class LoseScreenUI : MonoBehaviour
     [SerializeField]
     private string buttonClickSFX = "ButtonClick";
 
+    [SerializeField]
+    private string fallbackMenuMusicName = "bg";
+
     private CanvasGroup canvasGroup;
     private bool isVisible = false;
 
@@ -250,8 +253,11 @@ public class LoseScreenUI : MonoBehaviour
         }
         else if (AudioManager.Instance != null)
         {
-            // Fall back to stopping defeat music so menu/gameplay can restore their own tracks
-            AudioManager.Instance.StopMusic(fadeOut: false);
+            // Fall back to restoring a neutral track so the loading/menu scenes have audio
+            if (!string.IsNullOrEmpty(fallbackMenuMusicName))
+            {
+                AudioManager.Instance.PlayMusic(fallbackMenuMusicName, fadeIn: true, fadeTime: 0.5f);
+            }
         }
 
         Loader.Load(Loader.Scene.Loading);

@@ -220,8 +220,14 @@ public class GameOverManager : MonoBehaviour
     /// </summary>
     public void PrepareReturnToMenu()
     {
-        // Clear any defeat music so the menu/loading scenes can start their own audio
-        StopGameplayMusic();
+        // Clear defeat music and bring back the neutral background track so loading/menu
+        // scenes have audio immediately after leaving gameplay.
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopMusic(fadeOut: false);
+        }
+
+        ResumeGameplayMusic();
 
         // Hide lose screen to avoid lingering overlays if the gameplay scene reloads
         if (loseScreenUI != null)
