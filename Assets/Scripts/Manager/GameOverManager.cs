@@ -220,9 +220,8 @@ public class GameOverManager : MonoBehaviour
     /// </summary>
     public void PrepareReturnToMenu()
     {
-        // Clear any defeat music and bring back the base gameplay track
+        // Clear any defeat music so the menu/loading scenes can start their own audio
         StopGameplayMusic();
-        ResumeGameplayMusic();
 
         // Hide lose screen to avoid lingering overlays if the gameplay scene reloads
         if (loseScreenUI != null)
