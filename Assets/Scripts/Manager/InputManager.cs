@@ -6,7 +6,7 @@ public class InputManager : MonoBehaviour
 {
     public static InputManager Instance { get; private set; }
 
-    public PlayerInput input;
+     
 
     private Dictionary<KeyAction, Action> actionCallbacks = new();
 

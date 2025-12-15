@@ -15,11 +15,13 @@ public class UISkillsStatus : MonoBehaviour
 
     private void InitializeSkillDisplays()
     {
+        Debug.Log("InitializeSkillDisplays");
         // Clear existing displays
         ClearSkillDisplays();
 
         for (int i = 0; i < PlayerStats.Instance.SkillInstances.Count; i++)
         {
+            Debug.Log("ahaha");
             Skill_Base skill = PlayerStats.Instance.SkillInstances[i];
             SkillDisplay skillDisplay = Instantiate(skillDisplayPrefab, skillDisplayContainer);
             skillDisplay.Initialize(skill.SkillData);

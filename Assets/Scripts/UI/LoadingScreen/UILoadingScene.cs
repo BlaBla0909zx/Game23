@@ -56,17 +56,17 @@ public class UILoadingScene : MonoBehaviour
     }
     private void OnMasterVolumeChanged(float value)
     {
-        SettingManager.Instance.playerSetting.audioSettings.masterVolume = value;
+        SettingManager.Instance.SetMasterVolume(value);
     }
 
     private void OnSfxVolumeChanged(float value)
     {
-        SettingManager.Instance.playerSetting.audioSettings.sfxVolume = value;
+        SettingManager.Instance.SetSFXVolume(value);
     }
 
     private void OnMusicVolumeChanged(float value)
     {
-        SettingManager.Instance.playerSetting.audioSettings.musicVolume = value;
+        SettingManager.Instance.SetMusicVolume(value);
     }
     private void OnApplySettingsButtonClicked()
     {

@@ -72,7 +72,7 @@ public class GameOverManager : MonoBehaviour
             return;
 
         isGameOver = true;
-
+        //AudioManager.Instance.PlaySFX("");
         if (debugMode)
             Debug.Log("GameOverManager: Player died, triggering game over...");
 
